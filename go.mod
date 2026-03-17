@@ -15,4 +15,5 @@ require (
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	golang.org/x/image v0.37.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 )

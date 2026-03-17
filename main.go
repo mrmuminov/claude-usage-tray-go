@@ -27,6 +27,7 @@ func onReady() {
 
 	systray.AddSeparator()
 	mRefresh := systray.AddMenuItem("↻ Refresh", "Refresh stats")
+	mGitHub := systray.AddMenuItem("⎋ GitHub", "https://github.com/mrmuminov/claude-usage-tray-go")
 	mQuit := systray.AddMenuItem("✕ Quit", "Quit")
 
 	updateUI := func(s StatsData) {
@@ -68,6 +69,8 @@ func onReady() {
 			select {
 			case <-mRefresh.ClickedCh:
 				updateUI(FetchStats(true))
+			case <-mGitHub.ClickedCh:
+				openBrowser("https://github.com/mrmuminov/claude-usage-tray-go")
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 			}
