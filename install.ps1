@@ -88,17 +88,48 @@ else {
     $release = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "claude-tray-installer" }
     $asset = $release.assets | Where-Object { $_.name -like "*windows*amd64*" } | Select-Object -First 1
 
-    if (-not $asset) {
-        Write-Host "  [ERROR] No Windows binary found in release $($release.tag_name)" -ForegroundColor Red
+    if ($asset) {
+        # 3a) Pre-built binary available
+        Write-Host "  [*] Found: $($release.tag_name)" -ForegroundColor Cyan
+        Write-Host "  [*] Downloading binary..." -ForegroundColor Cyan
+        $tempFile = Join-Path $env:TEMP "$BinaryName.tmp"
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempFile -UseBasicParsing
+        Move-Item -Path $tempFile -Destination $BinaryPath -Force
+        Write-Host "  [OK] Installed to: $BinaryPath" -ForegroundColor Green
+    }
+    elseif (Get-Command go -ErrorAction SilentlyContinue) {
+        # 3b) No binary in release but Go available — download source and build
+        Write-Host "  [*] No binary in release, downloading source..." -ForegroundColor Cyan
+        $zipUrl = $release.zipball_url
+        $zipFile = Join-Path $env:TEMP "claude-tray-src.zip"
+        $extractDir = Join-Path $env:TEMP "claude-tray-src"
+
+        Invoke-WebRequest -Uri $zipUrl -OutFile $zipFile -UseBasicParsing -Headers @{ "User-Agent" = "claude-tray-installer" }
+
+        if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force }
+        Expand-Archive -Path $zipFile -DestinationPath $extractDir -Force
+
+        $srcDir = Get-ChildItem $extractDir | Select-Object -First 1
+        Write-Host "  [*] Building from source ($($release.tag_name))..." -ForegroundColor Cyan
+
+        & go build -C $srcDir.FullName -ldflags="-X main.Version=$($release.tag_name)" -o (Join-Path $srcDir.FullName $BinaryName) .
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  [ERROR] Build failed" -ForegroundColor Red
+            Remove-Item $zipFile -Force -ErrorAction SilentlyContinue
+            Remove-Item $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+            return
+        }
+
+        Copy-Item -Path (Join-Path $srcDir.FullName $BinaryName) -Destination $BinaryPath -Force
+        Remove-Item $zipFile -Force -ErrorAction SilentlyContinue
+        Remove-Item $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "  [OK] Built and installed to: $BinaryPath" -ForegroundColor Green
+    }
+    else {
+        Write-Host "  [ERROR] No binary in release and Go is not installed." -ForegroundColor Red
+        Write-Host "  Install Go from https://go.dev/dl/ or wait for binaries to be published." -ForegroundColor Yellow
         return
     }
-
-    Write-Host "  [*] Found: $($release.tag_name)" -ForegroundColor Cyan
-    Write-Host "  [*] Downloading..." -ForegroundColor Cyan
-    $tempFile = Join-Path $env:TEMP "$BinaryName.tmp"
-    Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempFile -UseBasicParsing
-    Move-Item -Path $tempFile -Destination $BinaryPath -Force
-    Write-Host "  [OK] Installed to: $BinaryPath" -ForegroundColor Green
 }
 
 # Autostart
