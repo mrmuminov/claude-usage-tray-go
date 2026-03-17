@@ -101,7 +101,7 @@ func onReady() {
 	mQuit.SetIcon(GenerateMenuActionIcon("quit"))
 
 	updateUI := func(s StatsData) {
-		systray.SetIcon(GenerateIconPNG(s.FiveHourPct))
+		systray.SetTooltip(fmt.Sprintf("Claude Usage Tray — 5h: %d%% | 7d: %d%%", s.FiveHourPct, s.SevenDayPct))
 		systray.SetTitle(FormatTitle(s))
 		items := FormatMenuItems(s)
 		if len(items) > 0 {
