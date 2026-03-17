@@ -121,6 +121,11 @@ Windows (PowerShell):
 & "$env:LOCALAPPDATA\claude-usage-tray-go\claude-usage-tray-go.exe" uninstall
 ```
 
+## Contributors
+
+- [Bahriddin Muminov](https://github.com/mrmuminov) — creator & maintainer
+- [Sharof Soliyev](https://github.com/SharofSoliyev) — contributor
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
