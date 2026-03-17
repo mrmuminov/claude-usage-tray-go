@@ -79,7 +79,7 @@ func printHelp() {
 func onExit() {}
 
 func onReady() {
-	systray.SetIcon(logoPNG)
+	systray.SetIcon(ResizeLogoPNG(logoPNG, 64))
 	systray.SetTitle("claude ⚡...")
 	systray.SetTooltip("Claude Usage Tray " + Version)
 

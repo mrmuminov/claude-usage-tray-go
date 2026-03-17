@@ -215,6 +215,30 @@ func isInRoundedRect(x, y, x0, y0, x1, y1, r int) bool {
 	return false
 }
 
+// ResizeLogoPNG decodes a PNG and scales it to the given size using nearest-neighbor.
+func ResizeLogoPNG(data []byte, size int) []byte {
+	src, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		return data
+	}
+	srcBounds := src.Bounds()
+	srcW := srcBounds.Dx()
+	srcH := srcBounds.Dy()
+
+	dst := image.NewRGBA(image.Rect(0, 0, size, size))
+	for y := 0; y < size; y++ {
+		for x := 0; x < size; x++ {
+			srcX := srcBounds.Min.X + x*srcW/size
+			srcY := srcBounds.Min.Y + y*srcH/size
+			dst.Set(x, y, src.At(srcX, srcY))
+		}
+	}
+
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, dst)
+	return buf.Bytes()
+}
+
 func generateIconFallback(text string, fg color.RGBA) []byte {
 	const size = 22
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
