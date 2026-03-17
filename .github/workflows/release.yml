@@ -17,15 +17,7 @@ jobs:
             goos: linux
             goarch: amd64
             artifact: claude-tray-go-linux-amd64
-          - os: ubuntu-24.04-arm
-            goos: linux
-            goarch: arm64
-            artifact: claude-tray-go-linux-arm64
-          - os: macos-13
-            goos: darwin
-            goarch: amd64
-            artifact: claude-tray-go-darwin-amd64
-          - os: macos-14
+          - os: macos-latest
             goos: darwin
             goarch: arm64
             artifact: claude-tray-go-darwin-arm64
@@ -45,7 +37,7 @@ jobs:
 
       - name: Install Linux dependencies
         if: matrix.goos == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y libayatana-appindicator3-dev gcc
+        run: sudo apt-get update && sudo apt-get install -y --fix-missing libayatana-appindicator3-dev gcc
 
       - name: Build (Linux/macOS)
         if: matrix.goos != 'windows'
