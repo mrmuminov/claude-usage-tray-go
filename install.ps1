@@ -1,9 +1,9 @@
 # Claude Usage Tray - Windows Installer
 #
-# Install:
+# Install (one-liner):
 #   irm https://raw.githubusercontent.com/mrmuminov/claude-usage-tray-go/master/install.ps1 | iex
 #
-# Or run from the repo directory (uses local binary if available):
+# Install from repo (builds from source if Go is available):
 #   .\install.ps1
 #
 # Uninstall:
@@ -45,26 +45,45 @@ if ($proc) {
     Start-Sleep -Seconds 2
 }
 
-# Check for local binary in current directory
-$localBinary = Join-Path $PSScriptRoot $BinaryName
-if (-not $PSScriptRoot) {
-    $localBinary = Join-Path (Get-Location) $BinaryName
+if (-not (Test-Path $InstallDir)) {
+    New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }
 
+# Determine script directory
+$scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+$localBinary = Join-Path $scriptDir $BinaryName
+$goModFile = Join-Path $scriptDir "go.mod"
+
 if (Test-Path $localBinary) {
-    # Use local binary from repo
+    # 1) Local binary exists — use it directly
     Write-Host "  [*] Using local binary: $localBinary" -ForegroundColor Cyan
-
-    if (-not (Test-Path $InstallDir)) {
-        New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
-    }
-
     Copy-Item -Path $localBinary -Destination $BinaryPath -Force
     Write-Host "  [OK] Installed to: $BinaryPath" -ForegroundColor Green
 }
+elseif ((Test-Path $goModFile) -and (Get-Command go -ErrorAction SilentlyContinue)) {
+    # 2) Source code + Go available — build from source
+    Write-Host "  [*] Building from source..." -ForegroundColor Cyan
+    $version = "dev"
+    try {
+        $version = (git -C $scriptDir describe --tags --always 2>$null)
+        if (-not $version) { $version = "dev" }
+    } catch { }
+
+    $buildOutput = Join-Path $scriptDir $BinaryName
+    & go build -C $scriptDir -ldflags="-X main.Version=$version" -o $buildOutput .
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  [ERROR] Build failed" -ForegroundColor Red
+        return
+    }
+    Write-Host "  [OK] Built successfully ($version)" -ForegroundColor Green
+
+    Copy-Item -Path $buildOutput -Destination $BinaryPath -Force
+    Remove-Item -Path $buildOutput -Force
+    Write-Host "  [OK] Installed to: $BinaryPath" -ForegroundColor Green
+}
 else {
-    # Download from GitHub releases
-    Write-Host "  [*] No local binary found, downloading from GitHub..." -ForegroundColor Cyan
+    # 3) No local binary, no Go — download from GitHub
+    Write-Host "  [*] Downloading from GitHub..." -ForegroundColor Cyan
     $apiUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/releases/latest"
     $release = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "claude-tray-installer" }
     $asset = $release.assets | Where-Object { $_.name -like "*windows*amd64*" } | Select-Object -First 1
@@ -75,11 +94,6 @@ else {
     }
 
     Write-Host "  [*] Found: $($release.tag_name)" -ForegroundColor Cyan
-
-    if (-not (Test-Path $InstallDir)) {
-        New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
-    }
-
     Write-Host "  [*] Downloading..." -ForegroundColor Cyan
     $tempFile = Join-Path $env:TEMP "$BinaryName.tmp"
     Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempFile -UseBasicParsing
