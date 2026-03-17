@@ -1,12 +1,43 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/getlantern/systray"
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "install":
+			if err := Install(); err != nil {
+				fmt.Fprintf(os.Stderr, "Install failed: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("Installed successfully.")
+			return
+		case "uninstall":
+			if err := Uninstall(); err != nil {
+				fmt.Fprintf(os.Stderr, "Uninstall failed: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("Uninstalled successfully.")
+			return
+		case "status":
+			PrintStatus()
+			return
+		case "version", "--version", "-v":
+			fmt.Printf("claude-usage-tray-go %s\n", Version)
+			return
+		default:
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
+			fmt.Fprintf(os.Stderr, "Usage: claude-usage-tray-go [install|uninstall|status|version]\n")
+			os.Exit(1)
+		}
+	}
+
 	systray.Run(onReady, onExit)
 }
 

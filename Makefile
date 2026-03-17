@@ -1,4 +1,4 @@
-.PHONY: build run clean
+.PHONY: build run clean install uninstall status
 
 VERSION ?= dev
 
@@ -10,3 +10,12 @@ run: build
 
 clean:
 	rm -f claude-usage-tray-go claude-usage-tray-go.exe
+
+install: build
+	./claude-usage-tray-go install
+
+uninstall: build
+	./claude-usage-tray-go uninstall
+
+status: build
+	./claude-usage-tray-go status
