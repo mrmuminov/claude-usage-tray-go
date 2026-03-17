@@ -69,6 +69,12 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: install.ps1
+
       - uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
+          files: |
+            artifacts/*
+            install.ps1
