@@ -15,21 +15,21 @@ func FormatTitle(s StatsData) string {
 func FormatMenuItems(s StatsData) []string {
 	var items []string
 
-	items = append(items, fmt.Sprintf("5h Rate:  %s %d%%  %s",
-		buildBar(s.FiveHourPct, 8),
+	items = append(items, fmt.Sprintf("5h Rate   %s  %3d%%   %s",
+		buildBar(s.FiveHourPct, 10),
 		s.FiveHourPct,
 		formatResetTime(s.FiveHourReset, "time"),
 	))
 
-	items = append(items, fmt.Sprintf("7d Rate:  %s %d%%  %s",
-		buildBar(s.SevenDayPct, 8),
+	items = append(items, fmt.Sprintf("7d Rate   %s  %3d%%   %s",
+		buildBar(s.SevenDayPct, 10),
 		s.SevenDayPct,
 		formatResetTime(s.SevenDayReset, "date"),
 	))
 
 	if s.ExtraEnabled {
-		items = append(items, fmt.Sprintf("Extra:    %s $%.2f/$%.2f",
-			buildBar(s.ExtraPct, 8),
+		items = append(items, fmt.Sprintf("Extra     %s  $%.2f / $%.2f",
+			buildBar(s.ExtraPct, 10),
 			s.ExtraUsed,
 			s.ExtraLimit,
 		))

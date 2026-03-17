@@ -15,6 +15,13 @@ import (
 //   removeAutostart() error
 //   autostartConfigured() bool
 
+// isInstalled checks if the binary is already installed.
+func isInstalled() bool {
+	destPath := filepath.Join(installDir(), binaryName())
+	_, err := os.Stat(destPath)
+	return err == nil
+}
+
 // Install copies the current binary to the install location and sets up autostart.
 func Install() error {
 	destDir := installDir()

@@ -1,17 +1,34 @@
 package main
 
 import (
+	"bufio"
+	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/getlantern/systray"
 )
 
+//go:embed logo.png
+var logoPNG []byte
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "install":
+			if isInstalled() {
+				fmt.Print("Already installed. Reinstall? [y/N]: ")
+				reader := bufio.NewReader(os.Stdin)
+				answer, _ := reader.ReadString('\n')
+				answer = strings.TrimSpace(strings.ToLower(answer))
+				if answer != "y" && answer != "yes" {
+					fmt.Println("Cancelled.")
+					return
+				}
+				fmt.Println("Reinstalling...")
+			}
 			if err := Install(); err != nil {
 				fmt.Fprintf(os.Stderr, "Install failed: %v\n", err)
 				os.Exit(1)
@@ -31,9 +48,13 @@ func main() {
 		case "version", "--version", "-v":
 			fmt.Printf("claude-usage-tray-go %s\n", Version)
 			return
+		case "help", "--help", "-h":
+			printHelp()
+			return
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
-			fmt.Fprintf(os.Stderr, "Usage: claude-usage-tray-go [install|uninstall|status|version]\n")
+			fmt.Fprintln(os.Stderr)
+			printHelp()
 			os.Exit(1)
 		}
 	}
@@ -41,11 +62,26 @@ func main() {
 	systray.Run(onReady, onExit)
 }
 
+func printHelp() {
+	fmt.Printf("Claude Usage Tray %s\n", Version)
+	fmt.Println()
+	fmt.Println("Usage: claude-usage-tray-go [command]")
+	fmt.Println()
+	fmt.Println("Commands:")
+	fmt.Println("  (none)       Start the tray application")
+	fmt.Println("  install      Install binary and configure autostart")
+	fmt.Println("  uninstall    Remove autostart and installed binary")
+	fmt.Println("  status       Show installation status")
+	fmt.Println("  version      Print version")
+	fmt.Println("  help         Show this help message")
+}
+
 func onExit() {}
 
 func onReady() {
+	systray.SetIcon(logoPNG)
 	systray.SetTitle("claude ⚡...")
-	systray.SetTooltip("Claude Code Stats " + Version)
+	systray.SetTooltip("Claude Usage Tray " + Version)
 
 	item5h := systray.AddMenuItem("5h: loading...", "5-hour rate limit")
 	item7d := systray.AddMenuItem("7d: loading...", "7-day rate limit")
@@ -57,9 +93,12 @@ func onReady() {
 	itemExtra.Disable()
 
 	systray.AddSeparator()
-	mRefresh := systray.AddMenuItem("↻ Refresh", "Refresh stats")
-	mGitHub := systray.AddMenuItem("⎋ GitHub", "https://github.com/mrmuminov/claude-usage-tray-go")
-	mQuit := systray.AddMenuItem("✕ Quit", "Quit")
+	mRefresh := systray.AddMenuItem("Refresh", "Refresh stats")
+	mRefresh.SetIcon(GenerateMenuActionIcon("refresh"))
+	mGitHub := systray.AddMenuItem("GitHub", "https://github.com/mrmuminov/claude-usage-tray-go")
+	mGitHub.SetIcon(GenerateMenuActionIcon("github"))
+	mQuit := systray.AddMenuItem("Quit", "Quit")
+	mQuit.SetIcon(GenerateMenuActionIcon("quit"))
 
 	updateUI := func(s StatsData) {
 		systray.SetIcon(GenerateIconPNG(s.FiveHourPct))
@@ -67,12 +106,15 @@ func onReady() {
 		items := FormatMenuItems(s)
 		if len(items) > 0 {
 			item5h.SetTitle(items[0])
+			item5h.SetIcon(GenerateMenuDotIcon(s.FiveHourPct))
 		}
 		if len(items) > 1 {
 			item7d.SetTitle(items[1])
+			item7d.SetIcon(GenerateMenuDotIcon(s.SevenDayPct))
 		}
 		if len(items) > 2 {
 			itemExtra.SetTitle(items[2])
+			itemExtra.SetIcon(GenerateMenuDotIcon(s.ExtraPct))
 			itemExtra.Show()
 		} else {
 			itemExtra.Hide()
