@@ -80,7 +80,7 @@ func onExit() {}
 
 func onReady() {
 	systray.SetIcon(ResizeLogoPNG(logoPNG, 64))
-	systray.SetTitle("claude ⚡...")
+	systray.SetTitle("")
 	systray.SetTooltip("Claude Usage Tray " + Version)
 
 	item5h := systray.AddMenuItem("5h: loading...", "5-hour rate limit")
@@ -102,7 +102,7 @@ func onReady() {
 
 	updateUI := func(s StatsData) {
 		systray.SetTooltip(fmt.Sprintf("Claude Usage Tray — 5h: %d%% | 7d: %d%%", s.FiveHourPct, s.SevenDayPct))
-		systray.SetTitle(FormatTitle(s))
+		systray.SetTitle("")
 		items := FormatMenuItems(s)
 		if len(items) > 0 {
 			item5h.SetTitle(items[0])
