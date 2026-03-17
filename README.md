@@ -1,5 +1,9 @@
 # Claude Usage Tray
 
+[![Release](https://img.shields.io/github/v/release/mrmuminov/claude-usage-tray-go)](https://github.com/mrmuminov/claude-usage-tray-go/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go](https://img.shields.io/github/go-mod/go-version/mrmuminov/claude-usage-tray-go)](go.mod)
+
 Cross-platform system tray application that displays Claude Code API usage statistics — 5-hour and 7-day rate limits, extra usage — with auto-refresh and dynamic color-coded icons.
 
 ![Screenshot](screenshot01.png)
@@ -13,11 +17,24 @@ Cross-platform system tray application that displays Claude Code API usage stati
 - **Autostart support** on Linux, macOS, and Windows
 - **Disk cache** with stale fallback for offline resilience
 
-## Installation
+## Quick Install
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/mrmuminov/claude-usage-tray-go/master/install.ps1 | iex
+```
+
+### macOS / Linux
+
+Download the latest binary from [GitHub Releases](https://github.com/mrmuminov/claude-usage-tray-go/releases), then:
+
+```bash
+chmod +x claude-tray-go-*
+./claude-tray-go-* install
+```
 
 ### Download pre-built binaries
-
-Download the latest release for your platform from [GitHub Releases](https://github.com/mrmuminov/claude-usage-tray-go/releases):
 
 | Platform | File |
 |----------|------|
@@ -25,7 +42,7 @@ Download the latest release for your platform from [GitHub Releases](https://git
 | macOS (arm64) | `claude-tray-go-darwin-arm64` |
 | Windows (amd64) | `claude-tray-go-windows-amd64.exe` |
 
-### Build from source
+## Build from Source
 
 **Prerequisites:** Go 1.25+
 
@@ -47,7 +64,7 @@ Or directly with Go:
 go build -ldflags="-X main.Version=dev" -o claude-usage-tray-go .
 ```
 
-### Install & autostart
+### Install & Autostart
 
 ```bash
 make install
@@ -65,7 +82,7 @@ Run without arguments to start the tray application:
 ./claude-usage-tray-go
 ```
 
-### CLI commands
+### CLI Commands
 
 | Command | Description |
 |---------|-------------|
@@ -85,7 +102,7 @@ The app resolves an OAuth token using this chain (first match wins):
 
 No manual configuration is needed if you're already logged into Claude Code.
 
-## Platform support
+## Platform Support
 
 | | Install directory | Autostart method |
 |---|---|---|
@@ -96,11 +113,22 @@ No manual configuration is needed if you're already logged into Claude Code.
 ## Uninstall
 
 ```bash
-make uninstall
-# or
 ./claude-usage-tray-go uninstall
 ```
 
+Windows (PowerShell):
+```powershell
+& "$env:LOCALAPPDATA\claude-usage-tray-go\claude-usage-tray-go.exe" uninstall
+```
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Security
+
+To report security vulnerabilities, please see [SECURITY.md](SECURITY.md).
+
 ## License
 
-See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
